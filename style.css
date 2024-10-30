@@ -2,30 +2,42 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #f0f0f0;
+    background-color: #000000; /* Black background for the whole page */
     font-family: Arial, sans-serif;
+    color: white; /* Text color for visibility */
+}
+
+h1 {
+    color: #ffffff; /* White color for the header */
 }
 
 #game-board {
     width: 400px;
     height: 400px;
-    border: 2px solid #333;
+    border: 2px solid #ffffff; /* White border for the game board */
     position: relative;
-    background-color: #fff;
+    background-color: #333333; /* Dark gray for game board for contrast */
+    display: grid; /* Using grid layout */
+    grid-template-columns: repeat(20, 1fr); /* 20 columns */
+    grid-template-rows: repeat(20, 1fr); /* 20 rows */
+}
+
+.grid-cell {
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Light grid lines */
 }
 
 .snake {
     position: absolute;
-    background-color: green; /* Change to a color that looks like a snake */
-    border-radius: 5px; /* Optional: rounded corners for the snake */
+    background-color: #00ff00; /* Bright green for the snake */
+    border-radius: 5px; /* Rounded corners for the snake segments */
 }
 
 .food {
     position: absolute;
-    background-color: pink; /* Change to a color that looks like cake */
-    width: 20px; /* Cake width */
-    height: 20px; /* Cake height */
-    border-radius: 5px; /* Optional: rounded corners for the food */
+    background-color: #ff0000; /* Bright red for food */
+    width: 20px; /* Food width */
+    height: 20px; /* Food height */
+    border-radius: 5px; /* Rounded corners for food */
 }
 
 #score {

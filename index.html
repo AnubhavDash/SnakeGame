@@ -3,35 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Snake Game</title>
+    <title>Snake Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <div id="score">Score: 0</div>
-        <div class="controls">
-            <label for="difficulty">Difficulty:</label>
-            <select id="difficulty" onchange="setDifficulty(this.value)">
-                <option value="100">Easy</option>
-                <option value="80">Medium</option>
-                <option value="60">Hard</option>
-            </select>
-            <label for="grid-size">Grid Size:</label>
-            <select id="grid-size" onchange="setGridSize(this.value)">
-                <option value="20">20x20</option>
-                <option value="15">15x15</option>
-                <option value="10">10x10</option>
-            </select>
-        </div>
-        <div id="game-board"></div>
-        <div id="game-over">
-            <div class="overlay-content">
-                <p>Game Over</p>
-                <p id="final-score"></p>
-                <button onclick="restartGame()">Play Again</button>
-            </div>
-        </div>
-    </div>
+    <h1>Snake Game</h1>
+    <div id="game-board"></div>
+    <div id="score">Score: 0</div>
+    <button id="reset-button">Reset</button>
+
     <script src="script.js"></script>
 </body>
 </html>

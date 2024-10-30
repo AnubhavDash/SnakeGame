@@ -1,114 +1,118 @@
-const board = document.getElementById('game-board');
+const boardSize = 20; // 20x20 grid
+const gameBoard = document.getElementById('game-board');
 const scoreDisplay = document.getElementById('score');
 const resetButton = document.getElementById('reset-button');
-
-const boardSize = 20; // Number of squares in one dimension
-const snakeSize = 20; // Size of each segment of the snake
-let snake = [{ x: 9 * snakeSize, y: 9 * snakeSize }];
+let snake = [{ x: 9, y: 9 }];
 let food = {};
-let direction = { x: snakeSize, y: 0 }; // Initial direction to the right
 let score = 0;
+let direction = { x: 0, y: 0 }; // Initial direction
 let gameInterval;
-let isGameRunning = true;
 
-function createFood() {
-    food = {
-        x: Math.floor(Math.random() * boardSize) * snakeSize,
-        y: Math.floor(Math.random() * boardSize) * snakeSize
-    };
-    // Ensure food is not generated on the snake's body
-    for (let segment of snake) {
-        if (segment.x === food.x && segment.y === food.y) {
-            createFood();
-            return;
-        }
-    }
+// Create grid cells
+for (let i = 0; i < boardSize * boardSize; i++) { // 20x20 grid = 400 cells
+    const gridCell = document.createElement('div');
+    gridCell.classList.add('grid-cell');
+    gameBoard.appendChild(gridCell);
 }
 
-function drawSnake() {
-    board.innerHTML = ''; // Clear the board
-    for (let segment of snake) {
-        const snakeElement = document.createElement('div');
-        snakeElement.style.left = `${segment.x}px`;
-        snakeElement.style.top = `${segment.y}px`;
-        snakeElement.className = 'snake';
-        board.appendChild(snakeElement);
-    }
-}
-
-function drawFood() {
-    const foodElement = document.createElement('div');
-    foodElement.style.left = `${food.x}px`;
-    foodElement.style.top = `${food.y}px`;
-    foodElement.className = 'food';
-    board.appendChild(foodElement);
-}
-
-function update() {
-    const newHead = {
-        x: snake[0].x + direction.x,
-        y: snake[0].y + direction.y
-    };
-
-    // Check for collisions
-    if (
-        newHead.x < 0 ||
-        newHead.x >= board.clientWidth ||
-        newHead.y < 0 ||
-        newHead.y >= board.clientHeight ||
-        snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)
-    ) {
-        isGameRunning = false;
-        clearInterval(gameInterval);
-        alert('Game Over! Your score: ' + score);
-        return;
-    }
-
-    // Check if snake has eaten food
-    if (newHead.x === food.x && newHead.y === food.y) {
-        score += 10;
-        createFood();
-    } else {
-        snake.pop(); // Remove the last segment if no food is eaten
-    }
-
-    snake.unshift(newHead); // Add new head to the snake
-    scoreDisplay.innerText = 'Score: ' + score;
-    drawSnake();
-    drawFood();
-}
-
-function startGame() {
-    score = 0;
-    snake = [{ x: 9 * snakeSize, y: 9 * snakeSize }];
-    direction = { x: snakeSize, y: 0 }; // Reset direction
-    isGameRunning = true;
-    createFood();
-    drawSnake();
-    drawFood();
+// Function to reset the game
+function resetGame() {
     clearInterval(gameInterval);
-    gameInterval = setInterval(update, 100); // Update the game every 100ms
+    snake = [{ x: 9, y: 9 }];
+    score = 0;
+    scoreDisplay.textContent = "Score: 0";
+    generateFood();
+    direction = { x: 0, y: 0 };
+    startGame();
 }
 
+// Function to start the game
+function startGame() {
+    gameInterval = setInterval(gameLoop, 100);
+}
+
+// Function to generate food at a random location
+function generateFood() {
+    food.x = Math.floor(Math.random() * boardSize);
+    food.y = Math.floor(Math.random() * boardSize);
+}
+
+// Function to update the game state
+function gameLoop() {
+    moveSnake();
+    if (checkCollision()) {
+        alert("Game Over! Your score was: " + score);
+        resetGame();
+    }
+    updateDisplay();
+}
+
+// Function to move the snake
+function moveSnake() {
+    const head = { ...snake[0] };
+    head.x += direction.x;
+    head.y += direction.y;
+
+    // Check if food is eaten
+    if (head.x === food.x && head.y === food.y) {
+        score++;
+        generateFood();
+    } else {
+        snake.pop(); // Remove the tail
+    }
+    snake.unshift(head); // Add new head
+}
+
+// Function to check collisions
+function checkCollision() {
+    const head = snake[0];
+    return (
+        head.x < 0 || head.x >= boardSize || // Wall collision
+        head.y < 0 || head.y >= boardSize || // Wall collision
+        snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y) // Self collision
+    );
+}
+
+// Function to update the display
+function updateDisplay() {
+    // Clear the board
+    const cells = gameBoard.getElementsByClassName('grid-cell');
+    Array.from(cells).forEach(cell => cell.style.backgroundColor = '');
+
+    // Draw snake
+    snake.forEach(segment => {
+        const index = segment.y * boardSize + segment.x;
+        cells[index].style.backgroundColor = '#00ff00'; // Snake color
+    });
+
+    // Draw food
+    const foodIndex = food.y * boardSize + food.x;
+    cells[foodIndex].style.backgroundColor = '#ff0000'; // Food color
+
+    // Update score
+    scoreDisplay.textContent = "Score: " + score;
+}
+
+// Event listeners for controls
 document.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'ArrowUp':
-            if (direction.y === 0) direction = { x: 0, y: -snakeSize };
+            if (direction.y === 0) direction = { x: 0, y: -1 };
             break;
         case 'ArrowDown':
-            if (direction.y === 0) direction = { x: 0, y: snakeSize };
+            if (direction.y === 0) direction = { x: 0, y: 1 };
             break;
         case 'ArrowLeft':
-            if (direction.x === 0) direction = { x: -snakeSize, y: 0 };
+            if (direction.x === 0) direction = { x: -1, y: 0 };
             break;
         case 'ArrowRight':
-            if (direction.x === 0) direction = { x: snakeSize, y: 0 };
-            break;
-        case ' ': // Space bar to stop the snake
-            direction = { x: 0, y: 0 };
+            if (direction.x === 0) direction = { x: 1, y: 0 };
             break;
     }
 });
 
-resetButton.addEventListener('click', startGame);
-startGame();
+// Reset button functionality
+resetButton.addEventListener('click', resetGame);
+
+// Start the game for the first time
+resetGame();
