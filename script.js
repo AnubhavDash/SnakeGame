@@ -1,159 +1,114 @@
-let gameBoard = document.getElementById('game-board');
-let scoreDisplay = document.getElementById('score');
-let gameOverOverlay = document.getElementById('game-over');
-let finalScoreDisplay = document.getElementById('final-score');
-let gameInterval;
-let gridSize = 20;
-let snake = [{ x: 10, y: 10 }];
-let food = { x: 15, y: 15 };
-let direction = { x: 0, y: 0 };
+const board = document.getElementById('game-board');
+const scoreDisplay = document.getElementById('score');
+const resetButton = document.getElementById('reset-button');
+
+const boardSize = 20; // Number of squares in one dimension
+const snakeSize = 20; // Size of each segment of the snake
+let snake = [{ x: 9 * snakeSize, y: 9 * snakeSize }];
+let food = {};
+let direction = { x: snakeSize, y: 0 }; // Initial direction to the right
 let score = 0;
-let difficulty = 100;
-let touchStartX = 0, touchStartY = 0;
+let gameInterval;
+let isGameRunning = true;
 
-// Initialize the game
-function initGame() {
-    document.addEventListener('keydown', changeDirection);
-    document.addEventListener('touchstart', startTouch, false);
-    document.addEventListener('touchmove', moveTouch, false);
-    placeFood();
-    draw();
-    gameInterval = setInterval(updateGame, difficulty);
-}
-
-// Set grid size
-function setGridSize(size) {
-    gridSize = parseInt(size);
-    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
-    restartGame();
-}
-
-// Set difficulty
-function setDifficulty(value) {
-    difficulty = parseInt(value);
-    clearInterval(gameInterval);
-    gameInterval = setInterval(updateGame, difficulty);
-}
-
-// Touch event handlers
-function startTouch(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}
-
-function moveTouch(e) {
-    if (!touchStartX || !touchStartY) return;
-    let touchEndX = e.touches[0].clientX;
-    let touchEndY = e.touches[0].clientY;
-    let diffX = touchStartX - touchEndX;
-    let diffY = touchStartY - touchEndY;
-
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (diffX > 0 && direction.x === 0) changeDirection({ key: 'ArrowLeft' });
-        else if (diffX < 0 && direction.x === 0) changeDirection({ key: 'ArrowRight' });
-    } else {
-        if (diffY > 0 && direction.y === 0) changeDirection({ key: 'ArrowUp' });
-        else if (diffY < 0 && direction.y === 0) changeDirection({ key: 'ArrowDown' });
+function createFood() {
+    food = {
+        x: Math.floor(Math.random() * boardSize) * snakeSize,
+        y: Math.floor(Math.random() * boardSize) * snakeSize
+    };
+    // Ensure food is not generated on the snake's body
+    for (let segment of snake) {
+        if (segment.x === food.x && segment.y === food.y) {
+            createFood();
+            return;
+        }
     }
-    touchStartX = 0;
-    touchStartY = 0;
 }
 
-// Update game state
-function updateGame() {
-    moveSnake();
-    if (checkCollision()) {
-        endGame();
+function drawSnake() {
+    board.innerHTML = ''; // Clear the board
+    for (let segment of snake) {
+        const snakeElement = document.createElement('div');
+        snakeElement.style.left = `${segment.x}px`;
+        snakeElement.style.top = `${segment.y}px`;
+        snakeElement.className = 'snake';
+        board.appendChild(snakeElement);
+    }
+}
+
+function drawFood() {
+    const foodElement = document.createElement('div');
+    foodElement.style.left = `${food.x}px`;
+    foodElement.style.top = `${food.y}px`;
+    foodElement.className = 'food';
+    board.appendChild(foodElement);
+}
+
+function update() {
+    const newHead = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y
+    };
+
+    // Check for collisions
+    if (
+        newHead.x < 0 ||
+        newHead.x >= board.clientWidth ||
+        newHead.y < 0 ||
+        newHead.y >= board.clientHeight ||
+        snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)
+    ) {
+        isGameRunning = false;
+        clearInterval(gameInterval);
+        alert('Game Over! Your score: ' + score);
         return;
     }
-    if (isEatingFood()) {
-        score++;
-        scoreDisplay.textContent = `Score: ${score}`;
-        growSnake();
-        placeFood();
-        snake[0].classList.add('eat'); // Trigger flash animation
+
+    // Check if snake has eaten food
+    if (newHead.x === food.x && newHead.y === food.y) {
+        score += 10;
+        createFood();
+    } else {
+        snake.pop(); // Remove the last segment if no food is eaten
     }
-    draw();
+
+    snake.unshift(newHead); // Add new head to the snake
+    scoreDisplay.innerText = 'Score: ' + score;
+    drawSnake();
+    drawFood();
 }
 
-// Draw game elements
-function draw() {
-    gameBoard.innerHTML = '';
-    snake.forEach(segment => {
-        let snakeElement = document.createElement('div');
-        snakeElement.style.gridRowStart = segment.y;
-        snakeElement.style.gridColumnStart = segment.x;
-        snakeElement.classList.add('snake');
-        gameBoard.appendChild(snakeElement);
-    });
-    let foodElement = document.createElement('div');
-    foodElement.style.gridRowStart = food.y;
-    foodElement.style.gridColumnStart = food.x;
-    foodElement.classList.add('food');
-    gameBoard.appendChild(foodElement);
-}
-
-// Move snake
-function moveSnake() {
-    const newHead = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-    snake.unshift(newHead);
-    snake.pop();
-}
-
-// Check collision
-function checkCollision() {
-    if (snake[0].x < 1 || snake[0].x > gridSize || snake[0].y < 1 || snake[0].y > gridSize) return true;
-    for (let i = 1; i < snake.length; i++) {
-        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
-    }
-    return false;
-}
-
-// Eating food and flash animation
-function isEatingFood() {
-    return snake[0].x === food.x && snake[0].y === food.y;
-}
-
-// Place food at random position
-function placeFood() {
-    food = {
-        x: Math.floor(Math.random() * gridSize) + 1,
-        y: Math.floor(Math.random() * gridSize) + 1
-    };
-}
-
-// Grow snake
-function growSnake() {
-    snake.push({ ...snake[snake.length - 1] });
-}
-
-// Restart game
-function restartGame() {
-    snake = [{ x: 10, y: 10 }];
-    direction = { x: 0, y: 0 };
+function startGame() {
     score = 0;
-    scoreDisplay.textContent = 'Score: 0';
-    gameOverOverlay.style.display = 'none';
-    placeFood();
+    snake = [{ x: 9 * snakeSize, y: 9 * snakeSize }];
+    direction = { x: snakeSize, y: 0 }; // Reset direction
+    isGameRunning = true;
+    createFood();
+    drawSnake();
+    drawFood();
     clearInterval(gameInterval);
-    gameInterval = setInterval(updateGame, difficulty);
+    gameInterval = setInterval(update, 100); // Update the game every 100ms
 }
 
-// End game
-function endGame() {
-    clearInterval(gameInterval);
-    finalScoreDisplay.textContent = `Final Score: ${score}`;
-    gameOverOverlay.style.display = 'flex';
-}
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            if (direction.y === 0) direction = { x: 0, y: -snakeSize };
+            break;
+        case 'ArrowDown':
+            if (direction.y === 0) direction = { x: 0, y: snakeSize };
+            break;
+        case 'ArrowLeft':
+            if (direction.x === 0) direction = { x: -snakeSize, y: 0 };
+            break;
+        case 'ArrowRight':
+            if (direction.x === 0) direction = { x: snakeSize, y: 0 };
+            break;
+        case ' ': // Space bar to stop the snake
+            direction = { x: 0, y: 0 };
+            break;
+    }
+});
 
-// Change direction based on key input
-function changeDirection(event) {
-    const keyPressed = event.key;
-    if (keyPressed === 'ArrowUp' && direction.y === 0) direction = { x: 0, y: -1 };
-    else if (keyPressed === 'ArrowDown' && direction.y === 0) direction = { x: 0, y: 1 };
-    else if (keyPressed === 'ArrowLeft' && direction.x === 0) direction = { x: -1, y: 0 };
-    else if (keyPressed === 'ArrowRight' && direction.x === 0) direction = { x: 1, y: 0 };
-}
-
-// Initialize game
-initGame();
+resetButton.addEventListener('click', startGame);
+startGame();
