@@ -8,10 +8,23 @@
 </head>
 <body>
     <h1>Snake Game</h1>
-    <div id="game-board"></div>
-    <div id="score">Score: 0</div>
-    <button id="reset-button">Reset</button>
-
+    <div id="scoreboard">
+        <div>Current Score: <span id="currentScore">0</span></div>
+        <div>Highest Score: <span id="highestScore">0</span></div>
+        <div>
+            Difficulty:
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="gameOverScreen" class="hidden">
+        <h2>Game Over</h2>
+        <button id="restartButton">Restart</button>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

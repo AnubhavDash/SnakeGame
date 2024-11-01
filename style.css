@@ -2,45 +2,60 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #000000; /* Black background for the whole page */
+    background-color: black;
+    color: white;
     font-family: Arial, sans-serif;
-    color: white; /* Text color for visibility */
 }
 
 h1 {
-    color: #ffffff; /* White color for the header */
+    margin: 20px 0;
+    font-weight: bold;
 }
 
-#game-board {
-    width: 400px;
-    height: 400px;
-    border: 2px solid #ffffff; /* White border for the game board */
-    position: relative;
-    background-color: #333333; /* Dark gray for game board for contrast */
-    display: grid; /* Using grid layout */
-    grid-template-columns: repeat(20, 1fr); /* 20 columns */
-    grid-template-rows: repeat(20, 1fr); /* 20 rows */
+#scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px 0;
+    font-size: 18px;
 }
 
-.grid-cell {
-    border: 1px solid rgba(255, 255, 255, 0.2); /* Light grid lines */
+canvas {
+    border: 2px solid #ccc;
+    background-color: #333;
 }
 
-.snake {
+#gameOverScreen {
     position: absolute;
-    background-color: #00ff00; /* Bright green for the snake */
-    border-radius: 5px; /* Rounded corners for the snake segments */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.food {
-    position: absolute;
-    background-color: #ff0000; /* Bright red for food */
-    width: 20px; /* Food width */
-    height: 20px; /* Food height */
-    border-radius: 5px; /* Rounded corners for food */
+#gameOverScreen.hidden {
+    display: none;
 }
 
-#score {
-    font-size: 20px;
-    margin: 10px;
+#restartButton {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#restartButton:hover {
+    background: #888;
 }
